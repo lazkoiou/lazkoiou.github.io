@@ -1,0 +1,24 @@
+---
+// Discreet "work in progress" stamp, shown in the sticky header on every page.
+// Remove it by setting `wip: false` in src/config.ts.
+---
+
+<span class="wip-stamp" aria-hidden="true">Work in progress</span>
+
+<style>
+  .wip-stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    padding: .15rem .6rem;
+    border: 2px solid var(--wip);
+    border-radius: 4px;
+    color: var(--wip);
+    font: 700 .65rem/1.2 system-ui, -apple-system, "Segoe UI", sans-serif;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: .65;
+    pointer-events: none;
+    user-select: none;
+  }
+</style>

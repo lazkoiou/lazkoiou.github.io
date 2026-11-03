@@ -11,6 +11,8 @@ export const SITE = {
   // Paste your Formspree form ID (e.g. "xyzabcde") to send messages via Formspree.
   // Leave empty to fall back to opening the visitor's mail app.
   formspreeId: '',
+  // Shows a "Work in progress" stamp on every page. Set to false when the site is finished.
+  wip: true,
 };
 
 export const NAV = [

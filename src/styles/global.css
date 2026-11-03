@@ -9,6 +9,7 @@
   --accent-text: #ffffff;
   --ok: #15803d;
   --bad: #b91c1c;
+  --wip: #dc2626;
   --max: 960px;
 }
 
@@ -23,6 +24,7 @@
   --accent-text: #042f2e;
   --ok: #4ade80;
   --bad: #f87171;
+  --wip: #f87171;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -37,6 +39,7 @@
     --accent-text: #042f2e;
     --ok: #4ade80;
     --bad: #f87171;
+    --wip: #f87171;
   }
 }
 
@@ -69,7 +72,8 @@ section { padding: 4rem 0 1rem; }
   border-bottom: 1px solid var(--border);
 }
 .site-header .wrap { display: flex; align-items: center; gap: 1.5rem; padding: .9rem 0; }
-.brand { font-weight: 700; text-decoration: none; margin-right: auto; }
+.brand-group { display: flex; align-items: center; gap: .85rem; margin-right: auto; }
+.brand { font-weight: 700; text-decoration: none; }
 .brand span { color: var(--accent); }
 nav { display: flex; gap: .25rem; flex-wrap: wrap; }
 nav a {

@@ -1,5 +1,6 @@
 ---
-import { NAV } from '../config';
+import { NAV, SITE } from '../config';
+import WipStamp from './WipStamp.astro';
 
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isActive = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(href + '/'));
@@ -7,7 +8,10 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path === href 
 
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="/">LK<span>.qa</span></a>
+    <div class="brand-group">
+      <a class="brand" href="/">LK<span>.qa</span></a>
+      {SITE.wip && <WipStamp />}
+    </div>
     <nav aria-label="Primary">
       {NAV.map((item) => (
         <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a>
