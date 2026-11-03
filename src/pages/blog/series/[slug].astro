@@ -1,0 +1,35 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { getPosts, allSeries, seriesChapters, slugify, formatDate } from '../../../lib/blog';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return allSeries(posts).map((series) => ({
+    params: { slug: slugify(series) },
+    props: { series, chapters: seriesChapters(posts, series) },
+  }));
+}
+
+const { series, chapters } = Astro.props;
+---
+
+<Base title={series} description={`Chapters in the series “${series}”.`}>
+  <div class="wrap">
+    <div class="page-head">
+      <p class="meta"><a href="/blog">← Blog</a></p>
+      <h1>{series}</h1>
+      <p>{chapters.length} chapters, in reading order.</p>
+    </div>
+    <ol class="post-list" style="list-style: none; padding: 0">
+      {chapters.map((c, i) => (
+        <li>
+          <a class="card" href={`/blog/${c.id}/`}>
+            <p class="meta" style="margin: 0">Chapter {c.data.order ?? i + 1} · {formatDate(c.data.date)}</p>
+            <h3>{c.data.title}</h3>
+            <p style="margin: 0">{c.data.description}</p>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </div>
+</Base>

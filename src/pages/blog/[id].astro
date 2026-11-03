@@ -1,0 +1,70 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getPosts, seriesChapters, formatDate, slugify } from '../../lib/blog';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { id: post.id }, props: { post, posts } }));
+}
+
+const { post, posts } = Astro.props;
+const { Content, headings } = await render(post);
+const { title, description, date, tags, series } = post.data;
+
+const chapters = series ? seriesChapters(posts, series) : [];
+const idx = chapters.findIndex((c) => c.id === post.id);
+const prev = idx > 0 ? chapters[idx - 1] : undefined;
+const next = idx >= 0 ? chapters[idx + 1] : undefined;
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+<Base title={title} description={description}>
+  <div class="wrap">
+    <div class:list={['post-layout', toc.length > 2 && 'has-toc']}>
+      <article>
+        <p class="meta"><a href="/blog">← Blog</a></p>
+        <h1 style="font-size: clamp(1.8rem, 5vw, 2.5rem)">{title}</h1>
+        <p class="meta">{formatDate(date)}</p>
+        <ul class="tags">
+          {tags.map((t) => <li><a href={`/blog/tags/${slugify(t)}/`}>{t}</a></li>)}
+        </ul>
+
+        {series && (
+          <aside class="card series-box">
+            <strong>Series: <a href={`/blog/series/${slugify(series)}/`}>{series}</a></strong>
+            <ol>
+              {chapters.map((c) => (
+                <li aria-current={c.id === post.id ? 'page' : undefined}>
+                  {c.id === post.id ? c.data.title : <a href={`/blog/${c.id}/`}>{c.data.title}</a>}
+                </li>
+              ))}
+            </ol>
+          </aside>
+        )}
+
+        <div class="prose">
+          <Content />
+        </div>
+
+        {(prev || next) && (
+          <nav class="pager" aria-label="Series navigation">
+            {prev ? <a class="link" href={`/blog/${prev.id}/`}>← {prev.data.title}</a> : <span />}
+            {next ? <a class="link" href={`/blog/${next.id}/`}>{next.data.title} →</a> : <span />}
+          </nav>
+        )}
+      </article>
+
+      {toc.length > 2 && (
+        <aside class="toc" aria-label="On this page">
+          <h4>On this page</h4>
+          <ul>
+            {toc.map((h) => (
+              <li class={`d${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>
+            ))}
+          </ul>
+        </aside>
+      )}
+    </div>
+  </div>
+</Base>

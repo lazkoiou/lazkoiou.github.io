@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro';
+import Simulator from '../../components/Simulator.astro';
+import { demos } from '../../data/demos';
+
+export function getStaticPaths() {
+  return demos.map((demo) => ({ params: { id: demo.id }, props: { demo } }));
+}
+
+const { demo } = Astro.props;
+---
+
+<Base title={demo.title} description={demo.summary}>
+  <div class="wrap">
+    <div class="page-head">
+      <p class="meta"><a href="/projects">← All projects</a></p>
+      <h1>{demo.title}</h1>
+      <p>{demo.summary}</p>
+      <ul class="tags">{demo.tags.map((t) => <li>{t}</li>)}</ul>
+    </div>
+
+    <Simulator demo={demo} />
+
+    <section style="padding-top: 3rem">
+      <h2>What this demonstrates</h2>
+      <ul>
+        {demo.highlights.map((h) => <li>{h}</li>)}
+      </ul>
+      <p class="meta">
+        The run is a scripted replay in your browser: the same spec and steps, against a small mock app. No tests are
+        executed on a server.
+      </p>
+    </section>
+  </div>
+</Base>

@@ -1,0 +1,21 @@
+---
+import { formatDate, slugify, type Post } from '../lib/blog';
+
+interface Props {
+  post: Post;
+}
+const { post } = Astro.props;
+const { title, description, date, tags, series, order } = post.data;
+---
+
+<article class="card">
+  <p class="meta" style="margin: 0 0 .25rem">
+    {series && <a class="badge" href={`/blog/series/${slugify(series)}/`}>{series}{order ? ` · Ch. ${order}` : ''}</a>}
+    {formatDate(date)}
+  </p>
+  <h2><a href={`/blog/${post.id}/`} style="text-decoration: none">{title}</a></h2>
+  <p>{description}</p>
+  <ul class="tags" style="margin-bottom: 0">
+    {tags.map((t) => <li><a href={`/blog/tags/${slugify(t)}/`}>{t}</a></li>)}
+  </ul>
+</article>

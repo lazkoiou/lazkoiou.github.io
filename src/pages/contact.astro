@@ -1,0 +1,75 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../config';
+---
+
+<Base title="Contact" description="Get in touch about QA automation roles and projects.">
+  <div class="wrap">
+    <div class="page-head">
+      <h1>Contact</h1>
+      <p>Open to new opportunities and interesting quality problems. Send a message or reach out directly.</p>
+    </div>
+
+    <section style="padding-top: 1rem">
+      <form
+        class="form"
+        id="contact-form"
+        data-formspree={SITE.formspreeId}
+        data-email={SITE.email}
+        novalidate
+      >
+        <label>Name <input name="name" required autocomplete="name" /></label>
+        <label>Email <input name="email" type="email" required autocomplete="email" /></label>
+        <label>Message <textarea name="message" rows="6" required></textarea></label>
+        <input class="hp" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        <div class="actions" style="margin: 0">
+          <button class="btn primary" type="submit">Send message</button>
+        </div>
+        <p class="form-status" id="form-status" role="status"></p>
+      </form>
+
+      <div class="actions">
+        <a class="btn" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+        <a class="btn" href={SITE.linkedin} rel="noopener">LinkedIn</a>
+        <a class="btn" href={SITE.github} rel="noopener">GitHub</a>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  const status = document.getElementById('form-status')!;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    if (data.get('company')) return; // honeypot
+    if (!form.checkValidity()) {
+      status.textContent = 'Please fill in your name, a valid email and a message.';
+      return;
+    }
+
+    const { formspree, email } = form.dataset;
+    if (formspree) {
+      status.textContent = 'Sending…';
+      try {
+        const res = await fetch(`https://formspree.io/f/${formspree}`, {
+          method: 'POST',
+          headers: { Accept: 'application/json' },
+          body: data,
+        });
+        if (!res.ok) throw new Error();
+        form.reset();
+        status.textContent = 'Thanks! Your message was sent.';
+      } catch {
+        status.textContent = `Something went wrong. Please email ${email} directly.`;
+      }
+    } else {
+      const subject = encodeURIComponent(`Portfolio message from ${data.get('name')}`);
+      const body = encodeURIComponent(`${data.get('message')}\n\n— ${data.get('name')} (${data.get('email')})`);
+      status.textContent = 'Opening your email app…';
+      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    }
+  });
+</script>

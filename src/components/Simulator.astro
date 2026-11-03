@@ -1,0 +1,411 @@
+---
+import { Code } from 'astro:components';
+import type { Demo } from '../data/demos';
+
+interface Props {
+  demo: Demo;
+}
+const { demo } = Astro.props;
+const { spec, app, ...runData } = demo;
+const hasOptional = demo.tests.some((t) => t.optional);
+---
+
+<div class="sim" data-demo={JSON.stringify(runData)}>
+  <div class="sim-toolbar">
+    <button class="btn primary run" type="button">▶ Run tests</button>
+    <button class="btn reset" type="button">Reset</button>
+    {hasOptional && (
+      <label class="toggle">
+        <input type="checkbox" class="fail-toggle" checked /> Include a failing test
+      </label>
+    )}
+  </div>
+
+  <div class="sim-grid">
+    <div class="pane">
+      <div class="pane-title">{demo.file}</div>
+      <div class="code-wrap">
+        <Code code={spec} lang="ts" themes={{ light: 'github-light', dark: 'github-dark' }} defaultColor={false} />
+      </div>
+    </div>
+
+    <div class="pane">
+      <div class="pane-title browser-bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="url">about:blank</span>
+      </div>
+      <div class="viewport" aria-hidden="true">
+        <div class="blank">Waiting for the test to start…</div>
+        {Object.entries(app.screens).map(([name, els]) => (
+          <div class="screen" data-screen={name}>
+            {els.map((el) =>
+              el.type === 'heading' ? (
+                <h4 class="m-heading" data-target={el.id}>{el.text}</h4>
+              ) : el.type === 'input' ? (
+                <div class="m-field">
+                  <span class="m-label">{el.label}</span>
+                  <div class="m-input" data-target={el.id} data-mask={el.mask ? '1' : undefined}>
+                    <span class="val" />
+                  </div>
+                </div>
+              ) : el.type === 'button' ? (
+                <div class="m-button" data-target={el.id}>{el.text}</div>
+              ) : el.type === 'alert' ? (
+                <div class="m-alert" data-target={el.id} />
+              ) : (
+                <p class="m-text" data-target={el.id}>{el.text}</p>
+              )
+            )}
+          </div>
+        ))}
+        <div class="cursor"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane terminal">
+    <div class="pane-title">Terminal · npx playwright test</div>
+    <pre class="terminal-body" aria-live="polite"><span class="dim">$ press “Run tests” to start</span></pre>
+  </div>
+
+  <div class="report" hidden></div>
+</div>
+
+<style is:global>
+  .sim { margin-top: 1.5rem; display: grid; gap: 1rem; }
+  .sim-toolbar { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+  .sim .toggle { color: var(--muted); font-size: .9rem; display: flex; gap: .4rem; align-items: center; }
+  .sim-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  @media (max-width: 860px) { .sim-grid { grid-template-columns: minmax(0, 1fr); } }
+
+  .pane { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); min-width: 0; }
+  .pane-title {
+    padding: .5rem .85rem; font-size: .8rem; color: var(--muted); font-family: ui-monospace, monospace;
+    border-bottom: 1px solid var(--border); background: var(--surface-2);
+  }
+
+  .code-wrap { max-height: 420px; overflow: auto; position: relative; }
+  .code-wrap .astro-code { margin: 0; border: 0; border-radius: 0; padding: .75rem 0; overflow: visible; min-width: max-content; }
+  .code-wrap code { display: grid; }
+  .code-wrap .line { padding: 0 1rem; min-height: 1.55em; border-left: 3px solid transparent; }
+  .code-wrap .line.active { background: color-mix(in srgb, var(--accent) 18%, transparent); border-left-color: var(--accent); }
+  .code-wrap .line.fail { background: color-mix(in srgb, var(--bad) 18%, transparent); border-left-color: var(--bad); }
+
+  .browser-bar { display: flex; align-items: center; gap: .75rem; }
+  .dots { display: inline-flex; gap: .3rem; }
+  .dots i { width: .6rem; height: .6rem; border-radius: 50%; background: var(--border); display: block; }
+  .url { background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: .1rem .75rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .viewport { position: relative; min-height: 300px; padding: 1.5rem; background: var(--bg); color: var(--text); }
+  .viewport .blank { color: var(--muted); text-align: center; padding-top: 6rem; font-size: .9rem; }
+  .viewport.has-screen .blank { display: none; }
+  .screen { display: none; max-width: 300px; margin: 0 auto; gap: .75rem; }
+  .screen.active { display: grid; }
+  .m-heading { margin: 0 0 .25rem; font-size: 1.3rem; }
+  .m-text { margin: 0; color: var(--muted); }
+  .m-label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: .2rem; }
+  .m-input { border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: .45rem .6rem; min-height: 2.1rem; font-size: .95rem; }
+  .m-input.focus { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+  .m-button { background: var(--accent); color: var(--accent-text); text-align: center; padding: .55rem; border-radius: 6px; font-weight: 600; font-size: .95rem; }
+  .m-button.press { transform: scale(.96); filter: brightness(.9); }
+  .m-alert { color: var(--bad); font-size: .9rem; }
+  .m-alert:empty { display: none; }
+  [data-target].ok { outline: 2px solid var(--ok); outline-offset: 3px; border-radius: 4px; }
+  [data-target].bad { outline: 2px solid var(--bad); outline-offset: 3px; border-radius: 4px; }
+
+  .cursor {
+    position: absolute; top: 0; left: 0; width: 16px; height: 16px; pointer-events: none; opacity: 0;
+    transition: transform .55s cubic-bezier(.4, 0, .2, 1), opacity .2s;
+    background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 1l11 6.5-5 1.5-2 5z' fill='%23000' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E");
+  }
+  .cursor.on { opacity: 1; }
+
+  .terminal-body {
+    margin: 0; padding: .85rem 1rem; max-height: 260px; overflow: auto; background: #0c0a09; color: #e7e5e4;
+    font: .82rem/1.55 ui-monospace, "SF Mono", Menlo, monospace; white-space: pre-wrap;
+  }
+  .terminal-body .dim { color: #a8a29e; }
+  .terminal-body .pass { color: #4ade80; }
+  .terminal-body .failed { color: #f87171; }
+
+  .report { border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; }
+  .report[hidden] { display: none; }
+  .rp-head { padding: .85rem 1rem; border-bottom: 1px solid var(--border); background: var(--surface-2); display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+  .rp-head strong { margin-right: auto; }
+  .rp-chip { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 999px; padding: .15rem .8rem; font: inherit; font-size: .85rem; cursor: pointer; }
+  .rp-chip[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, var(--surface)); }
+  .rp-body { padding: .5rem 1rem 1rem; }
+  .rp-test { border-bottom: 1px solid var(--border); padding: .6rem 0; }
+  .rp-test summary { cursor: pointer; display: flex; gap: .6rem; align-items: baseline; }
+  .rp-test summary .dur { margin-left: auto; color: var(--muted); font-size: .85rem; }
+  .rp-test .st { font-weight: 700; }
+  .rp-test.passed .st { color: var(--ok); }
+  .rp-test.failed .st { color: var(--bad); }
+  .rp-steps { list-style: none; margin: .6rem 0 0 1.4rem; padding: 0; color: var(--muted); font-size: .88rem; font-family: ui-monospace, monospace; }
+  .rp-steps li.bad { color: var(--bad); }
+  .rp-error { margin: .6rem 0 0 1.4rem; padding: .7rem .9rem; border-radius: 8px; background: color-mix(in srgb, var(--bad) 12%, var(--surface)); color: var(--bad); font: .85rem/1.5 ui-monospace, monospace; white-space: pre-wrap; }
+  .rp-test[hidden] { display: none; }
+</style>
+
+<script>
+  import type { Demo, DemoTest, Step } from '../data/demos';
+
+  type RunData = Omit<Demo, 'spec' | 'app'>;
+
+  const root = document.querySelector<HTMLElement>('.sim')!;
+  const demo: RunData = JSON.parse(root.dataset.demo!);
+  const q = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+
+  const runBtn = q<HTMLButtonElement>('.run');
+  const resetBtn = q<HTMLButtonElement>('.reset');
+  const failToggle = root.querySelector<HTMLInputElement>('.fail-toggle');
+  const viewport = q('.viewport');
+  const cursor = q('.cursor');
+  const urlEl = q('.url');
+  const term = q('.terminal-body');
+  const report = q('.report');
+  const codeWrap = q('.code-wrap');
+  const lines = [...root.querySelectorAll<HTMLElement>('.code-wrap .line')];
+  const screens = [...root.querySelectorAll<HTMLElement>('.screen')];
+  const targets = [...root.querySelectorAll<HTMLElement>('[data-target]')];
+  targets.forEach((el) => {
+    if (!el.classList.contains('m-input')) el.dataset.initial = el.textContent ?? '';
+  });
+
+  const speed = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.2 : 0.6;
+  let token = 0;
+  let running = false;
+
+  const sleep = (ms: number, t: number) =>
+    new Promise<void>((res, rej) =>
+      setTimeout(() => (t === token ? res() : rej(new Error('cancelled'))), ms * speed)
+    );
+
+  const el = (tag: string, cls = '', text = '') => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text) e.textContent = text;
+    return e;
+  };
+
+  function say(text: string, cls = '') {
+    const s = el('span', cls, text + '\n');
+    term.append(s);
+    term.scrollTop = term.scrollHeight;
+  }
+
+  function markLine(n: number | null, state: 'active' | 'fail' = 'active') {
+    lines.forEach((l) => l.classList.remove('active', 'fail'));
+    if (n === null) return;
+    const line = lines[n - 1];
+    if (!line) return;
+    line.classList.add(state);
+    codeWrap.scrollTop = line.offsetTop - codeWrap.clientHeight / 2;
+  }
+
+  function showScreen(name: string | null) {
+    screens.forEach((s) => s.classList.toggle('active', s.dataset.screen === name));
+    viewport.classList.toggle('has-screen', name !== null);
+  }
+
+  function resetApp() {
+    targets.forEach((t) => {
+      t.classList.remove('ok', 'bad', 'focus', 'press');
+      if (t.classList.contains('m-input')) t.querySelector('.val')!.textContent = '';
+      else t.textContent = t.dataset.initial ?? '';
+    });
+    showScreen(null);
+    urlEl.textContent = 'about:blank';
+    cursor.classList.remove('on');
+  }
+
+  const find = (id: string) => root.querySelector<HTMLElement>(`[data-target="${id}"]`)!;
+
+  function moveCursor(target: HTMLElement) {
+    const v = viewport.getBoundingClientRect();
+    const r = target.getBoundingClientRect();
+    cursor.classList.add('on');
+    cursor.style.transform = `translate(${r.left - v.left + r.width * 0.6}px, ${r.top - v.top + r.height * 0.55}px)`;
+  }
+
+  async function perform(step: Step, t: number) {
+    const target = step.target ? find(step.target) : null;
+    if (step.kind === 'goto') {
+      await sleep(350, t);
+      urlEl.textContent = demo.baseUrl + step.value;
+    } else if (target) {
+      moveCursor(target);
+      await sleep(650, t);
+    }
+
+    if (step.kind === 'fill' && target) {
+      target.classList.add('focus');
+      const val = target.querySelector('.val')!;
+      const mask = target.dataset.mask === '1';
+      for (const ch of step.value ?? '') {
+        val.textContent += mask ? '•' : ch;
+        await sleep(45, t);
+      }
+      target.classList.remove('focus');
+    } else if (step.kind === 'click' && target) {
+      target.classList.add('press');
+      await sleep(180, t);
+      target.classList.remove('press');
+    }
+
+    if (step.set) {
+      if (step.set.text) for (const [id, text] of Object.entries(step.set.text)) find(id).textContent = text;
+      if (step.set.screen) showScreen(step.set.screen);
+      await sleep(350, t);
+    }
+
+    if (step.kind === 'expect' && target) {
+      moveCursor(target);
+      await sleep(400, t);
+      target.classList.add(step.fail ? 'bad' : 'ok');
+      await sleep(700, t);
+    }
+  }
+
+  interface Result {
+    test: DemoTest;
+    passed: boolean;
+    seconds: number;
+    ran: Step[];
+  }
+
+  const fmt = (s: number) => `${s.toFixed(1)}s`;
+  const title = (test: DemoTest) =>
+    `${demo.file}:${test.line}:${demo.describe ? 7 : 1} › ${demo.describe ? demo.describe + ' › ' : ''}${test.name}`;
+
+  function buildReport(results: Result[], total: number) {
+    const passed = results.filter((r) => r.passed).length;
+    const failed = results.length - passed;
+    report.replaceChildren();
+
+    const head = el('div', 'rp-head');
+    head.append(el('strong', '', `Playwright Test Report · ${demo.file}`));
+    const chips: Array<[string, string]> = [['all', `All ${results.length}`], ['passed', `Passed ${passed}`], ['failed', `Failed ${failed}`]];
+    const chipEls = chips.map(([key, label]) => {
+      const c = el('button', 'rp-chip', label) as HTMLButtonElement;
+      c.type = 'button';
+      c.setAttribute('aria-pressed', String(key === 'all'));
+      c.dataset.filter = key;
+      return c;
+    });
+    head.append(...chipEls, el('span', 'meta', `Total time: ${fmt(total)}`));
+    report.append(head);
+
+    const body = el('div', 'rp-body');
+    results.forEach((r, i) => {
+      const d = el('details', `rp-test ${r.passed ? 'passed' : 'failed'}`);
+      d.dataset.status = r.passed ? 'passed' : 'failed';
+      if (!r.passed) d.open = true;
+      const sum = el('summary');
+      sum.append(el('span', 'st', r.passed ? '✓' : '✗'), el('span', '', `${i + 1}. ${r.test.name}`), el('span', 'dur', fmt(r.seconds)));
+      d.append(sum);
+      const ul = el('ul', 'rp-steps');
+      r.ran.forEach((s) => ul.append(el('li', s.fail ? 'bad' : '', `${s.fail ? '✗' : '✓'} ${s.log}`)));
+      d.append(ul);
+      const failing = r.ran.find((s) => s.fail);
+      if (failing?.error) d.append(el('div', 'rp-error', `Error: expect(locator) failed\n${failing.error}`));
+      body.append(d);
+    });
+    report.append(body);
+
+    chipEls.forEach((c) =>
+      c.addEventListener('click', () => {
+        chipEls.forEach((o) => o.setAttribute('aria-pressed', String(o === c)));
+        body.querySelectorAll<HTMLElement>('.rp-test').forEach((t) => {
+          t.hidden = c.dataset.filter !== 'all' && t.dataset.status !== c.dataset.filter;
+        });
+      })
+    );
+    report.hidden = false;
+    report.scrollIntoView({ behavior: speed < 1 ? 'auto' : 'smooth', block: 'nearest' });
+  }
+
+  function reset() {
+    token++;
+    running = false;
+    runBtn.disabled = false;
+    runBtn.textContent = '▶ Run tests';
+    term.replaceChildren(el('span', 'dim', '$ press “Run tests” to start'));
+    report.hidden = true;
+    markLine(null);
+    resetApp();
+  }
+
+  async function run() {
+    if (running) return;
+    reset();
+    const t = token;
+    running = true;
+    runBtn.disabled = true;
+    runBtn.textContent = 'Running…';
+    term.replaceChildren();
+
+    const tests = demo.tests.filter((x) => !x.optional || !failToggle || failToggle.checked);
+    const results: Result[] = [];
+    const t0 = performance.now();
+
+    try {
+      say('$ npx playwright test', 'dim');
+      await sleep(500, t);
+      say(`Running ${tests.length} test${tests.length === 1 ? '' : 's'} using 1 worker\n`);
+
+      for (const [i, test] of tests.entries()) {
+        resetApp();
+        const start = performance.now();
+        const ran: Step[] = [];
+        let passed = true;
+
+        for (const step of test.steps) {
+          markLine(step.line);
+          await perform(step, t);
+          ran.push(step);
+          if (step.fail) {
+            passed = false;
+            markLine(step.line, 'fail');
+            await sleep(500, t);
+            break;
+          }
+        }
+
+        const seconds = (performance.now() - start) / 1000;
+        results.push({ test, passed, seconds, ran });
+        say(`  ${passed ? '✓' : '✘'}  ${i + 1} ${title(test)} (${fmt(seconds)})`, passed ? 'pass' : 'failed');
+        markLine(null);
+        await sleep(300, t);
+      }
+
+      const failed = results.filter((r) => !r.passed);
+      if (failed.length) {
+        say('');
+        failed.forEach((r, i) => {
+          say(`  ${i + 1}) ${title(r.test)}`, 'failed');
+          const err = r.ran.find((s) => s.fail)?.error ?? '';
+          say(`     Error: expect(locator) failed\n${err.split('\n').map((l) => '     ' + l).join('\n')}`, 'failed');
+        });
+        say('');
+        say(`  ${failed.length} failed`, 'failed');
+      } else {
+        say('');
+      }
+      const total = (performance.now() - t0) / 1000;
+      say(`  ${results.length - failed.length} passed (${fmt(total)})`, 'pass');
+      say('\nTo open last HTML report run: npx playwright show-report', 'dim');
+      await sleep(400, t);
+      buildReport(results, total);
+    } catch (e) {
+      if (!(e instanceof Error) || e.message !== 'cancelled') throw e;
+      return;
+    }
+    running = false;
+    runBtn.disabled = false;
+    runBtn.textContent = '↻ Run again';
+  }
+
+  runBtn.addEventListener('click', run);
+  resetBtn.addEventListener('click', reset);
+</script>
