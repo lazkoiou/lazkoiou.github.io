@@ -5,12 +5,12 @@ export const SITE = {
   title: 'Lazaros Koiou · QA Automation Engineer',
   description:
     'Portfolio of Lazaros Koiou, QA Automation Engineer specializing in Playwright, TypeScript and CI/CD test pipelines.',
-  email: 'you@example.com',
+  email: 'laz.koiou@gmail.com',
   linkedin: 'https://www.linkedin.com/',
   github: 'https://github.com/',
   // Paste your Formspree form ID (e.g. "xyzabcde") to send messages via Formspree.
   // Leave empty to fall back to opening the visitor's mail app.
-  formspreeId: '',
+  formspreeId: 'moeeyayd',
   // Shows a "Work in progress" stamp on every page. Set to false when the site is finished.
   wip: true,
 };
