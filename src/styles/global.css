@@ -54,7 +54,7 @@ body {
 }
 
 a { color: inherit; }
-h1, h2, h3 { line-height: 1.2; margin: 0 0 .5rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin: 0 0 .5rem; }
 h2 { font-size: 1.75rem; margin-bottom: 1.25rem; }
 h3 { font-size: 1.1rem; }
 
@@ -127,6 +127,7 @@ a.card:hover { border-color: var(--accent); }
 }
 .timeline h3 span { color: var(--muted); font-weight: 400; }
 .timeline p { margin: 0 0 .25rem; color: var(--muted); }
+.timeline .meta { font-weight: 600; }
 
 .site-footer { padding: 3rem 0; color: var(--muted); font-size: .9rem; text-align: center; }
 
@@ -185,3 +186,12 @@ a.card:hover { border-color: var(--accent); }
   nav { order: 3; width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Education & Experience: years sit left of the timeline bullet */
+#education .timeline { margin-left: 3.25rem; }
+#experience .timeline { margin-left: 6.5rem; }
+#education .timeline .meta,
+#experience .timeline .meta {
+  position: absolute; top: .15rem; right: calc(100% + 1.25rem + 14px);
+  margin: 0; white-space: nowrap;
+}
